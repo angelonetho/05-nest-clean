@@ -51,8 +51,7 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
 
     if (cacheHit) {
       const cachedData = JSON.parse(cacheHit)
-      console.log('hitou ' + cacheHit)
-      return cachedData
+      return PrismaQuestionDetailsMapper.toDomain(cachedData)
     }
 
     const question = await this.prisma.question.findUnique({
@@ -68,13 +67,9 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
     if (!question) {
       return null
     }
+    await this.cache.set(`question:${slug}:details`, JSON.stringify(question))
 
     const questionDetails = PrismaQuestionDetailsMapper.toDomain(question)
-
-    await this.cache.set(
-      `question:${slug}:details`,
-      JSON.stringify(questionDetails),
-    )
 
     return questionDetails
   }
